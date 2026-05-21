@@ -55,7 +55,7 @@ pip install numpy
 
 You need a free Hugging Face account. Visit each link and click **Accept** on the model page:
 
-- **Phi-3 Mini:** https://huggingface.co/microsoft/Phi-3-mini-4k-instruct
+- **Phi-4 Mini:** https://huggingface.co/microsoft/Phi-4-mini-4k-instruct
 - **Llama 3.2 3B:** https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct
 - **Mistral 7B:** https://huggingface.co/apple/mistral-coreml
 
@@ -73,8 +73,8 @@ hf auth login
 ### 0.4 Create Your Project Folder
 
 ```bash
-mkdir ~/llm-edge-paper
-cd ~/llm-edge-paper
+mkdir -p ~/Developer/personal-projects/llm-edge-coreml
+cd ~/Developer/personal-projects/llm-edge-coreml
 mkdir models_pytorch models_fp16 models_int8 models_int4 results
 ```
 
@@ -88,48 +88,28 @@ For each model: download the PyTorch weights, then convert to a CoreML FP16 `.ml
 
 ---
 
-### 1.1 Phi-3 Mini 4K Instruct (Microsoft · 3.8B)
+### 1.1 Phi-4 Mini 4K Instruct (Microsoft · 3.8B)
 
-#### Download
+#### Download Pre-converted CoreML Model
+
+> ✅ Manual conversion of Phi-4 from PyTorch fails on standard `coremltools` due to complex Rotary Position Embedding (RoPE) operations. We will use a pre-converted model provided by the community on HuggingFace ([AlonBBar/phi4mini-task-assistant-coreml](https://huggingface.co/AlonBBar/phi4mini-task-assistant-coreml)).
 
 ```bash
 python3 -c "
 from huggingface_hub import snapshot_download
 snapshot_download(
-    repo_id='microsoft/Phi-3-mini-4k-instruct',
-    local_dir='models_pytorch/phi3-mini',
-    ignore_patterns=['*.gguf', '*.ggml']
+    repo_id='AlonBBar/phi4mini-task-assistant-coreml',
+    local_dir='models_fp16/phi4-mini-fp16.mlpackage',
+    allow_patterns=['*phi4mini-float16.mlpackage/*']
 )
 print('Done')
 "
+# Move the downloaded files to the right folder structure
+mv models_fp16/phi4-mini-fp16.mlpackage/* models_fp16/phi4-mini-fp16.mlpackage/
+rm -rf models_fp16/phi4-mini-fp16.mlpackage
 ```
 
-**✅ Expected result:** Folder `models_pytorch/phi3-mini` created. Size: ~7.6 GB. Contains `config.json`, tokenizer files, and model `.safetensors` shards.
-
-#### Convert to FP16 CoreML
-
-```python
-import coremltools as ct
-import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
-
-model_id = 'models_pytorch/phi3-mini'
-tokenizer = AutoTokenizer.from_pretrained(model_id)
-model = AutoModelForCausalLM.from_pretrained(model_id, torch_dtype=torch.float16)
-model.eval()
-
-# Trace and convert
-mlmodel = ct.convert(
-    model,
-    convert_to='mlprogram',
-    minimum_deployment_target=ct.target.macOS26,
-    compute_units=ct.ComputeUnit.ALL,  # Uses ANE + GPU + CPU
-)
-mlmodel.save('models_fp16/phi3-mini-fp16.mlpackage')
-print('Done: phi3-mini-fp16.mlpackage')
-```
-
-**✅ Expected result:** File `models_fp16/phi3-mini-fp16.mlpackage` created. Size: ~7.6 GB. Conversion time: 20–35 minutes.
+**✅ Expected result:** Folder `models_fp16/phi4-mini-fp16.mlpackage` created and populated.
 
 > ✅ If you get a memory error, close all other apps and try again. The conversion loads the full model into RAM.
 
@@ -137,47 +117,29 @@ print('Done: phi3-mini-fp16.mlpackage')
 
 ### 1.2 Llama 3.2 3B Instruct (Meta · 3B)
 
-#### Download
+#### Download Pre-converted CoreML Model
+
+> ✅ Just like Phi-4, manual PyTorch tracing of Llama 3.2 often fails without Apple's internal stateful optimization wrappers. We download a pre-converted community package ([andmev/Llama-3.2-3B-Instruct-CoreML](https://huggingface.co/andmev/Llama-3.2-3B-Instruct-CoreML)).
 
 ```bash
 python3 -c "
 from huggingface_hub import snapshot_download
 snapshot_download(
-    repo_id='meta-llama/Llama-3.2-3B-Instruct',
-    local_dir='models_pytorch/llama32-3b',
-    ignore_patterns=['*.gguf']
+    repo_id='andmev/Llama-3.2-3B-Instruct-CoreML',
+    local_dir='models_fp16/llama32-3b-fp16.mlpackage',
+    allow_patterns=['*.mlpackage/*']
 )
 print('Done')
 "
 ```
 
-**✅ Expected result:** Folder `models_pytorch/llama32-3b` created. Size: ~6 GB.
-
-#### Convert to FP16 CoreML
-
-```python
-model_id = 'models_pytorch/llama32-3b'
-tokenizer = AutoTokenizer.from_pretrained(model_id)
-model = AutoModelForCausalLM.from_pretrained(model_id, torch_dtype=torch.float16)
-model.eval()
-
-mlmodel = ct.convert(
-    model,
-    convert_to='mlprogram',
-    minimum_deployment_target=ct.target.macOS26,
-    compute_units=ct.ComputeUnit.ALL,
-)
-mlmodel.save('models_fp16/llama32-3b-fp16.mlpackage')
-print('Done: llama32-3b-fp16.mlpackage')
-```
-
-**✅ Expected result:** File `models_fp16/llama32-3b-fp16.mlpackage` created. Size: ~6 GB. Conversion time: 15–30 minutes.
+**✅ Expected result:** Folder `models_fp16/llama32-3b-fp16.mlpackage` created. Size: ~6 GB.
 
 ---
 
 ### 1.3 Mistral 7B Instruct v0.3 (Mistral AI · 7B)
 
-> ✅ Apple already provides a CoreML-converted Mistral 7B. Download it directly instead of converting from scratch.
+> ✅ Apple already provides a CoreML-converted Mistral 7B ([apple/mistral-coreml](https://huggingface.co/apple/mistral-coreml)). Download it directly instead of converting from scratch.
 
 ```bash
 python3 -c "
@@ -200,7 +162,7 @@ Open Finder, right-click each `.mlpackage` folder → **Get Info**. Record the s
 
 | Model | Expected FP16 Size | Your Recorded Size |
 |---|---|---|
-| phi3-mini-fp16.mlpackage | ~7.6 GB | _______ MB |
+| phi4-mini-fp16.mlpackage | ~7.6 GB | _______ MB |
 | llama32-3b-fp16.mlpackage | ~6.0 GB | _______ MB |
 | mistral-7b-fp16.mlpackage | ~14.0 GB | _______ MB |
 
@@ -221,7 +183,7 @@ import coremltools.optimize.coreml as cto
 import coremltools as ct
 
 # Load the FP16 model
-model = ct.models.MLModel('models_fp16/phi3-mini-fp16.mlpackage')  # change per model
+model = ct.models.MLModel('models_fp16/phi4-mini-fp16.mlpackage')  # change per model
 
 # Define INT8 quantization config
 op_config = cto.OpLinearQuantizerConfig(
@@ -233,7 +195,7 @@ config = cto.OptimizationConfig(global_config=op_config)
 
 # Apply quantization
 model_int8 = cto.linear_quantize_weights(model, config=config)
-model_int8.save('models_int8/phi3-mini-int8.mlpackage')  # change per model
+model_int8.save('models_int8/phi4-mini-int8.mlpackage')  # change per model
 print('INT8 done')
 ```
 
@@ -273,7 +235,7 @@ print(f'Saved {len(calibration_prompts)} prompts')
 import coremltools.optimize.coreml as cto
 import coremltools as ct
 
-model = ct.models.MLModel('models_fp16/phi3-mini-fp16.mlpackage')  # change per model
+model = ct.models.MLModel('models_fp16/phi4-mini-fp16.mlpackage')  # change per model
 
 op_config = cto.OpLinearQuantizerConfig(
     mode='linear_symmetric',
@@ -284,7 +246,7 @@ op_config = cto.OpLinearQuantizerConfig(
 config = cto.OptimizationConfig(global_config=op_config)
 
 model_int4 = cto.linear_quantize_weights(model, config=config)
-model_int4.save('models_int4/phi3-mini-int4.mlpackage')  # change per model
+model_int4.save('models_int4/phi4-mini-int4.mlpackage')  # change per model
 print('INT4 done')
 ```
 
@@ -296,7 +258,7 @@ print('INT4 done')
 
 | Model | INT8 Size | INT4 Size | INT4 Reduction vs FP16 |
 |---|---|---|---|
-| Phi-3 Mini | _______ MB | _______ MB | _______ % |
+| Phi-4 Mini | _______ MB | _______ MB | _______ % |
 | Llama 3.2 3B | _______ MB | _______ MB | _______ % |
 | Mistral 7B | _______ MB | _______ MB | _______ % |
 
@@ -313,7 +275,7 @@ Create a Swift macOS command-line app in Xcode to run each model and measure inf
 - Open Xcode → File → New → Project
 - Choose **macOS → Command Line Tool**
 - Product Name: **LLMBenchmark** | Language: **Swift**
-- Save in your `~/llm-edge-paper` folder
+- Save in your `~/Developer/personal-projects/llm-edge-coreml` folder
 
 ### 3.2 Add Models to Xcode Project
 
@@ -382,9 +344,9 @@ func benchmark(modelURL: URL, modelName: String) {
 
 | Model | Quantization | Latency (tok/s) | Model Size (MB) | Peak Memory (GB) |
 |---|---|---|---|---|
-| Phi-3 Mini | FP16 | _______ | _______ | _______ |
-| Phi-3 Mini | INT8 | _______ | _______ | _______ |
-| Phi-3 Mini | INT4 | _______ | _______ | _______ |
+| Phi-4 Mini | FP16 | _______ | _______ | _______ |
+| Phi-4 Mini | INT8 | _______ | _______ | _______ |
+| Phi-4 Mini | INT4 | _______ | _______ | _______ |
 | Llama 3.2 3B | FP16 | _______ | _______ | _______ |
 | Llama 3.2 3B | INT8 | _______ | _______ | _______ |
 | Llama 3.2 3B | INT4 | _______ | _______ | _______ |
@@ -464,9 +426,9 @@ with open('mmlu_200.json') as f:
     questions = json.load(f)
 
 models = {
-    'phi3-fp16':  'models_fp16/phi3-mini-fp16.mlpackage',
-    'phi3-int8':  'models_int8/phi3-mini-int8.mlpackage',
-    'phi3-int4':  'models_int4/phi3-mini-int4.mlpackage',
+    'phi4-fp16':  'models_fp16/phi4-mini-fp16.mlpackage',
+    'phi4-int8':  'models_int8/phi4-mini-int8.mlpackage',
+    'phi4-int4':  'models_int4/phi4-mini-int4.mlpackage',
     'llama-fp16': 'models_fp16/llama32-3b-fp16.mlpackage',
     'llama-int8': 'models_int8/llama32-3b-int8.mlpackage',
     'llama-int4': 'models_int4/llama32-3b-int4.mlpackage',
@@ -493,7 +455,7 @@ with open('results/mmlu_accuracy.json', 'w') as f:
 
 | Model | FP16 Accuracy (%) | INT8 Accuracy (%) | INT4 Accuracy (%) |
 |---|---|---|---|
-| Phi-3 Mini 3.8B | _______ % | _______ % | _______ % |
+| Phi-4 Mini 3.8B | _______ % | _______ % | _______ % |
 | Llama 3.2 3B | _______ % | _______ % | _______ % |
 | Mistral 7B | _______ % | _______ % | _______ % |
 
@@ -519,9 +481,9 @@ When you have all your numbers, send them in this format:
 ```
 Here are my results:
 
-Phi-3 Mini FP16:  latency=X tok/s, size=X MB, memory=X GB, MMLU=X%
-Phi-3 Mini INT8:  latency=X tok/s, size=X MB, memory=X GB, MMLU=X%
-Phi-3 Mini INT4:  latency=X tok/s, size=X MB, memory=X GB, MMLU=X%
+Phi-4 Mini FP16:  latency=X tok/s, size=X MB, memory=X GB, MMLU=X%
+Phi-4 Mini INT8:  latency=X tok/s, size=X MB, memory=X GB, MMLU=X%
+Phi-4 Mini INT4:  latency=X tok/s, size=X MB, memory=X GB, MMLU=X%
 Llama 3.2 FP16:   latency=X tok/s, size=X MB, memory=X GB, MMLU=X%
 Llama 3.2 INT8:   latency=X tok/s, size=X MB, memory=X GB, MMLU=X%
 Llama 3.2 INT4:   latency=X tok/s, size=X MB, memory=X GB, MMLU=X%
@@ -551,8 +513,8 @@ Section 6 is short (one page) and is written after Section 5. It answers three q
 | ☐ | Phase 0 — Install Python env + coremltools | 30 min |
 | ☐ | Phase 0 — Install Xcode 16 | 20 min |
 | ☐ | Phase 0 — Accept HuggingFace licenses + login | 10 min |
-| ☐ | Phase 1 — Download Phi-3 Mini PyTorch weights | 30 min |
-| ☐ | Phase 1 — Convert Phi-3 Mini to FP16 CoreML | 35 min |
+| ☐ | Phase 1 — Download Phi-4 Mini PyTorch weights | 30 min |
+| ☐ | Phase 1 — Convert Phi-4 Mini to FP16 CoreML | 35 min |
 | ☐ | Phase 1 — Download Llama 3.2 3B PyTorch weights | 20 min |
 | ☐ | Phase 1 — Convert Llama 3.2 3B to FP16 CoreML | 30 min |
 | ☐ | Phase 1 — Download Mistral 7B CoreML from Apple | 45 min |
@@ -583,7 +545,7 @@ Section 6 is short (one page) and is written after Section 5. It answers three q
 ### Model Loads But Produces Garbage Output
 - Make sure you are using the instruction-tuned variant (model name ends in `-Instruct`)
 - Add the correct chat template to your prompts — each model has a different format
-- For Phi-3: wrap prompt in `<|user|>` and `<|assistant|>` tags
+- For Phi-4: wrap prompt in `<|user|>` and `<|assistant|>` tags
 
 ### INT4 Quantization Takes Too Long
 - This is normal — INT4 with AWQ calibration is compute-intensive
