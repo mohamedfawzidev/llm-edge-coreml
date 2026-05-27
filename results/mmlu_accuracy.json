@@ -1,0 +1,8 @@
+{
+  "phi4-fp16": null,
+  "phi4-int8": null,
+  "phi4-int4": null,
+  "mistral-fp16": null,
+  "mistral-int8": 51.1,
+  "mistral-int4": 50.6
+}

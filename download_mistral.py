@@ -1,5 +1,8 @@
+import os
 import shutil
 from huggingface_hub import snapshot_download
+
+os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "1"
 
 print("Downloading Mistral 7B FP16 CoreML from Apple (~14 GB)...")
 snapshot_download(

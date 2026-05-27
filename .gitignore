@@ -1,9 +1,27 @@
-# Ignore macOS system files
+# macOS
 .DS_Store
 
-# Ignore all directories
-*/
+# Paper drafts and internal experiment docs
+docs/
 
-# Un-ignore specific directories
-!docs/
-!results/
+# Python virtual environment
+coreml-env/
+
+# Large model files — download locally, see README
+models_fp16/*.mlpackage
+models_int8/*.mlpackage
+models_int4/*.mlpackage
+
+# Compiled CoreML model cache (generated at runtime by LLMBenchmark)
+models_compiled/
+
+# Xcode project (local benchmark app — Swift source in LLMBenchmark/LLMBenchmark/main.swift)
+LLMBenchmark/
+
+# Claude Code project instructions (internal)
+CLAUDE.md
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
