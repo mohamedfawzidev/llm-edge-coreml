@@ -99,8 +99,10 @@ python3 evaluate_mmlu.py
 ├── models_fp16/                # Place downloaded FP16 .mlpackage files here
 ├── models_int8/                # Place quantized INT8 .mlpackage files here
 ├── models_int4/                # Place quantized INT4 .mlpackage files here
-└── results/
-    └── mmlu_accuracy.json      # Recorded MMLU accuracy results
+├── results/
+│   └── mmlu_accuracy.json      # Recorded MMLU accuracy results
+└── docs/
+    └── Key_Findings.md         # Detailed findings, unexpected results, and benchmark table
 ```
 
 ---

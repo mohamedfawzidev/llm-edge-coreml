@@ -1,8 +1,10 @@
 # macOS
 .DS_Store
 
-# Paper drafts and internal experiment docs
-docs/
+# Paper drafts and internal experiment docs (keep Key_Findings.md public)
+docs/Experiment_Guide.md
+docs/Benchmark_Reproducibility.md
+docs/Optimizing LLM Inference on Edge Devices_ A Comparative Study of Quantization Techniques using CoreML.md
 
 # Python virtual environment
 coreml-env/
