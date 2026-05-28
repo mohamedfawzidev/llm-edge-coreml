@@ -7,6 +7,7 @@ docs/Benchmark_Reproducibility.md
 docs/Optimizing LLM Inference on Edge Devices_ A Comparative Study of Quantization Techniques using CoreML.md
 docs/Optimizing LLM Inference on Edge Devices_ A Comparative Study of Quantization Techniques using CoreML.pdf
 docs/Presentation_Guide.md
+docs/How_to_Publish.md
 
 # Python virtual environment
 coreml-env/
