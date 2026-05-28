@@ -69,7 +69,7 @@ python3 quantize_mistral_int4.py   # → models_int4/mistral-7b-int4.mlpackage (
 
 ### Phase 3 — Latency & Memory Benchmarking
 
-Open `LLMBenchmark/LLMBenchmark.xcodeproj` in Xcode. Set `MODEL_INDEX` in `main.swift` to select the model (0–5), then run. The app prints peak `phys_footprint` memory and median tokens/sec. Run once per model with a 60-second cooldown between runs.
+Latency and memory were measured using a Swift macOS command-line app built in Xcode. The app loads each `.mlpackage` with `computeUnits = .all` and measures peak `phys_footprint` memory (Mach task API) and median tokens/sec across 5 runs. See the paper for the full methodology.
 
 ### Phase 4 — MMLU Accuracy
 
@@ -96,19 +96,11 @@ python3 evaluate_mmlu.py
 ├── sample_mmlu.py              # Samples 200 MMLU questions → mmlu_200.json
 ├── evaluate_mmlu.py            # Runs MMLU evaluation on Mistral INT8/INT4
 ├── mmlu_200.json               # The exact 200-question test set used
-├── LLMBenchmark/               # Swift macOS app — latency & memory benchmarking
-│   └── LLMBenchmark/
-│       └── main.swift          # Full benchmark source (phys_footprint memory + tok/s)
-├── models_fp16/                # FP16 .mlpackage files (gitignored — download locally)
-├── models_int8/                # INT8 .mlpackage files (gitignored — generate locally)
-├── models_int4/                # INT4 .mlpackage files (gitignored — generate locally)
-├── results/
-│   └── mmlu_accuracy.json      # Recorded MMLU accuracy results
-└── docs/
-    ├── Key_Findings.md                     # Detailed findings including unexpected results
-    ├── Experiment_Guide.md                 # Step-by-step reproduction protocol
-    ├── Benchmark_Reproducibility.md        # Swift benchmark code and methodology
-    └── Optimizing LLM Inference on Edge Devices_...md   # Full paper draft
+├── models_fp16/                # Place downloaded FP16 .mlpackage files here
+├── models_int8/                # Place quantized INT8 .mlpackage files here
+├── models_int4/                # Place quantized INT4 .mlpackage files here
+└── results/
+    └── mmlu_accuracy.json      # Recorded MMLU accuracy results
 ```
 
 ---
