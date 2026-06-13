@@ -20,8 +20,10 @@ models_int4/*.mlpackage
 # Compiled CoreML model cache (generated at runtime by LLMBenchmark)
 models_compiled/
 
-# Xcode project (local benchmark app — Swift source in LLMBenchmark/LLMBenchmark/main.swift)
-LLMBenchmark/
+# Xcode user-specific data
+LLMBenchmark/LLMBenchmark.xcodeproj/xcuserdata/
+LLMBenchmark/LLMBenchmark.xcodeproj/project.xcworkspace/xcuserdata/
+LLMBenchmark/DerivedData/
 
 # Claude Code project instructions (internal)
 CLAUDE.md
